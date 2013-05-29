@@ -130,9 +130,9 @@ use constant {
 
 my $_log_fh;    # will be opened on demand
 my $_log_level         = LOG_DEBUG;
-my $_logfile           = '/opt/monitor/var/dnd.log';    #'/tmp/dnd.log';
+my $_logfile           = '/opt/monitor/var/dnd.log';
 my $_scp               = '/usr/bin/scp';
-my $_spool_dir         = '/var/spool/dnd'; #'/opt/vgt_op5/DND/spool';      #'/tmp/dndspool';
+my $_spool_dir         = '/var/spool/dnd';
 my $_instance_pid      = DND::Pid->new;
 my $_run_in_foreground = 0;
 my %_subfolders        = (
