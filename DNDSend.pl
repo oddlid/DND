@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # Wrapper script to generate the correct file format for DND.pm
 # To be called from OP5.
-# 
+#
 # Licence: GPL
 # Author:  Odd Eivind Ebbesen <odd@oddware.net>
 
@@ -14,14 +14,13 @@ use warnings;
 use Carp;
 use Getopt::Long;
 use Pod::Usage;
-#use Data::Dumper;
 
 BEGIN {
-   our $VERSION = $main::VERSION = $DND::VERSION;
-
    use FindBin;
    use lib "$FindBin::Bin";
    use DND;
+
+   our $VERSION = $main::VERSION = $DND::VERSION;
 }
 
 sub _parse_opts {
@@ -48,9 +47,7 @@ sub _parse_opts {
    pod2usage(-exitval => 0, -verbose => 2) if ($opt->{man});
 
    # delete the entries that DND should not parse before returning
-   delete($opt->{help});
-   delete($opt->{man});
-   delete($opt->{dndman});
+   delete($opt->{$_}) foreach (qw/help man dndman/);
 
    return $opt;
 }
@@ -60,7 +57,6 @@ sub notify {
    if (!$opts) {
       pod2usage(-exitval => 2, -verbose => 1);
    }
-   #print(Dumper($opts));
    DND::notify($opts);
 }
 

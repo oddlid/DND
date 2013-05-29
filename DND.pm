@@ -6,7 +6,7 @@
 #
 # NOTE: This does NOT solve the problem with SMSD not sending SMS due to 
 # lack of GSM coverage, or similar, as neither "sendsms" or "smsd" itself 
-# provides no return status indicating whether SMS is sucessfully sent.
+# provides any return status indicating whether SMS is sucessfully sent.
 # That would require another hack that follows smsd's logfile and detects
 # if the message is sent or not. Rewriting "sendsms" would be a good start.
 #
@@ -34,7 +34,6 @@ use File::Spec;
 use File::Temp;
 use IO::File;
 use Pod::Usage;
-#use Data::Dumper;
 
 ### Helper class DND::Pid ###
 {
@@ -133,7 +132,7 @@ my $_log_fh;    # will be opened on demand
 my $_log_level         = LOG_DEBUG;
 my $_logfile           = '/opt/monitor/var/dnd.log';    #'/tmp/dnd.log';
 my $_scp               = '/usr/bin/scp';
-my $_spool_dir         = '/opt/vgt_op5/DND/spool';      #'/tmp/dndspool';
+my $_spool_dir         = '/var/spool/dnd'; #'/opt/vgt_op5/DND/spool';      #'/tmp/dndspool';
 my $_instance_pid      = DND::Pid->new;
 my $_run_in_foreground = 0;
 my %_subfolders        = (
@@ -146,13 +145,11 @@ my %_subfolders        = (
 # ---------------------------------------------------------------- #
 
 sub _get_user {
-   #return getlogin() || getpwuid($<);
-   return getpwuid($<);
+   return getpwuid($<) || getlogin();
 }
 
 sub _kill {
-   # For external use, but prefixed name with _ to not confure with the builtin kill
-   # Shortcut for faster debugging
+   # For external use, but prefixed name with _ to not confuse with the builtin kill
    my $pid = $_instance_pid->read;
    return 0 unless ($pid);
    return kill('TERM', $pid);
@@ -195,7 +192,7 @@ sub notify {
          $tmpf->print("$v\n");
          next;
       }
-      # if the value is an array, we will write one line for each value,
+      # If the value is an array, we will write one line for each value,
       # with the key repeated, to enable specifying alternate destination
       # hosts, in preferred order.
       # That way, you can have failover hosts to notify via, in case the
@@ -226,15 +223,12 @@ sub _log {
    my ($level, $msg, @params) = @_;
    return if ($level > $_log_level);
    if (!defined($_log_fh)) {
-      #open($_log_fh, ">>", $_logfile) or croak(qq(Unable to open logfile "$_logfile": $!));
       $_log_fh = IO::File->new($_logfile, O_CREAT | O_WRONLY | O_APPEND);
       croak(qq(Unable to open logfile "$_logfile": $!)) unless ($_log_fh);
       $_log_fh->autoflush(1);
    }
    $msg = sprintf($msg, @params) if (scalar(@params));
-   #$msg = _timestamp() . ' [ ' . hostname() . ' ] ' . "=> $msg\n";
    $msg = sprintf("%s [ %s ] => %s\n", _timestamp, hostname, $msg);
-   #print($_log_fh $msg);
    $_log_fh->print($msg);
 }
 
@@ -310,7 +304,7 @@ sub satanize {    # pun on daemonize... :P
 
 sub slurp_file {
    my $file = shift || return;    # undef in gives undef out
-   open(my $fh, '<', $file) or return;    #or croak($!);
+   open(my $fh, '<', $file) or return;
    chomp(my @lines = <$fh>);
    close($fh) or croak($!);
    return \@lines;
@@ -318,13 +312,13 @@ sub slurp_file {
 
 sub append_file {
    my $file = shift || return;
-   my $data = shift || 'UNDEF'; # a string on purpose
+   my $data = shift || 'UNDEF';    # a string on purpose
 
    open(my $fh, '>>', $file) or croak($!);
    print($fh $data);
    close($fh) or croak($!);
 
-   return 1;    # always return true if we get to the end
+   return 1;                       # always return true if we get to the end
 }
 
 sub move_file {
@@ -522,7 +516,7 @@ sub run {
 
 ### Entry point ###
 
-# Construct as modulino, to allow for both usage as a module or a script
+# Construct as modulino, to allow for both usage as a module or as a script
 __PACKAGE__->run(@ARGV) unless (caller);
 
 1;
@@ -538,13 +532,13 @@ B<DND> - Distributed Notification Daemon
 =head1 DESCRIPTION
 
 This daemon is to be run on every host that runs OP5 Monitor in the
-WirelessCar network. It checks a spool folder, and if it finds anything in
+distributed setup. It checks a spool folder, and if it finds anything in
 the incoming queue there, read the file, which should contain info about
 source/destination host and the command to execute for notification. If
 the C<< dst-host >> is the same as the one it's running on, execute
 the command. If exit status is 0, move the file to F<< $spool/sent >>,
 otherwise to F<< $spool/failed >> and write info about why it failed in
-the end of the file. If dst-host is another machine, copy the file over
+the end of the file. If dst_host is another machine, copy the file over
 to that machines spool so the remote host can take care of notifying
 just as above. If moving fails, move the file to F<< $spool/failed >>,
 and append info about why.
@@ -563,11 +557,11 @@ and append info about why.
  the equal sign, so it will be ignored.
 
 Lines that contain an equal sign (=) will be split up as key-value
-pairs. The keys will be scanned for certain keywords (C<dst-host>,
+pairs. The keys will be scanned for certain keywords (C<dst_host>,
 C<cmd>), and given a match, it tries execute the command given as the
-value of C<cmd>, either locally, if a value for C<dst-host> was found,
+value of C<cmd>, either locally, if a value for C<dst_host> was found,
 and matches the hostname of the running host, or by copying the file via
-C<scp> to C<dst-host> if it's not the current host. If another instance
+C<scp> to C<dst_host> if it's not the current host. If another instance
 of C<DND.pm> is running on the remote host, it will pick up the file
 and repeat this process.
 
@@ -592,7 +586,7 @@ F<< /opt/monitor/var/dnd.log >>
 
 =item Spool directory: 
 
-F<< /opt/vgt_op5/DND/spool/{queue/,sent/,failed/,dispatched/} >>
+F<< /var/spool/dnd/{queue,sent,failed,dispatched} >>
 
 
 =back
