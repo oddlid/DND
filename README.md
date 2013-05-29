@@ -1,12 +1,12 @@
-# Distributed Notification Daemon - DND
+# DND - Distributed Notification Daemon
 
-## Description:
+## Description
 
 A spooler solution intended to be used in conjunction with OP5 in a
 distributed setup, to aid in making sure notifications are sent regardless
 of unstable GSM modems or other flaky conditions.
 
-## Technical:
+## Technical
 
 DND contains a daemon that should be run on each OP5 node, and a rewritten
 version of "sendsms" that will monitor smsd's spooler directories to
@@ -16,15 +16,16 @@ and quits. This way, if an SMS is not sent due to lack of coverage or
 the like, the daemon can hand over the message to the next node in the
 host preference list and try to send the message from that one instead.
 
-## Licence: 
+## Licence 
 
 GPLv2
 
-## Platform:
+## Platform
 
 [Linux](http://www.kernel.org)
+
 [Perl](http://www.perl.org)
 
-## Author:
+## Author
 
 Odd Eivind Ebbesen <odd@oddware.net>
