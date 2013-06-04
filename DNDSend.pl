@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # Wrapper script to generate the correct file format for DND.pm
-# To be called from OP5.
+# To be called from op5 Monitor.
 #
 # Licence: GPL
 # Author:  Odd Eivind Ebbesen <odd@oddware.net>

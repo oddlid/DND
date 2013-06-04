@@ -2,7 +2,7 @@
 # Spooler solution for sending command files between hosts
 # and execute the contents, and re-dispatch the file if execution 
 # is not successful.
-# Intended for use with a distributed OP5 setup, but runs standalone.
+# Intended for use with a distributed op5 Monitor setup, but runs standalone.
 #
 # NOTE: This does NOT solve the problem with SMSD not sending SMS due to 
 # lack of GSM coverage, or similar, as neither "sendsms" or "smsd" itself 
@@ -531,7 +531,7 @@ B<DND> - Distributed Notification Daemon
 
 =head1 DESCRIPTION
 
-This daemon is to be run on every host that runs OP5 Monitor in the
+This daemon is to be run on every host that runs op5 Monitor in the
 distributed setup. It checks a spool folder, and if it finds anything in
 the incoming queue there, read the file, which should contain info about
 source/destination host and the command to execute for notification. If
